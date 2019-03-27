@@ -20,7 +20,7 @@ import json
 import os
 
 user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.89 Safari/537.36'
-image_count = 1
+image_count = 0
 
 
 def check(address):
