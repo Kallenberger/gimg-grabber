@@ -9,7 +9,7 @@
 # to handle command line arguments
 import sys
 # clipboard access
-import pyperclip
+import pyperclip 
 # for downloading data from the web
 import requests
 # for extracting information from html
