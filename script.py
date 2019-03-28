@@ -22,6 +22,7 @@ import os
 import itertools
 
 user_agent   = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.89 Safari/537.36'
+user_agent_bot = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 image_count  = 0
 error_count  = 0
 output_count = 0
@@ -31,9 +32,9 @@ def check(address, num = 0):
     if type(address) == str:
         # link points to an image
         # Translate all to lowercase
-        address = address.lower() 
+        #address = address.lower() 
         #any() checks a list of conditions; We're checking for any one extension in the address
-        if any(ext in address for ext in ['.jpg','.jpeg','.tiff','.gif','.bmp','.png','.bat','.gifv','.webm','.mp4']):
+        if any(ext in address for ext in ['.jpg','.jpeg','.tiff','.gif','.bmp','.png','.bat','.gifv','.webm','.mp4', '.JPG','.JPEG','.TIFF','.GIF','.BMP','.PNG','.BAT','.GIFV','.WEBM','.MP4']):
             # make directory for images
             os.makedirs(os.path.join(path, folder_name), exist_ok = True)
             download_and_save(address)
@@ -69,30 +70,38 @@ def download_and_save(address):
     #Counter for checking the output
     output_count += 1
     #transalte to lowercase
-    address = address.lower()
+    #address = address.lower()
     #We're checking if file extension has ? appended; if so, we're removing excess text to save with valid filename
-    if any(ext in address for ext in ['.jpg?','.jpeg?','.tiff?','.gif?','.bmp?','.png?','.bat?','.gifv?','.webm?','.mp4?']):
+    if any(ext in address for ext in ['.jpg?','.jpeg?','.tiff?','.gif?','.bmp?','.png?','.bat?','.gifv?','.webm?','.mp4?', '.JPG?','.JPEG?','.TIFF?','.GIF?','.BMP?','.PNG?','.BAT?','.GIFV?','.WEBM?','.MP4?']):
         filename = address[:address.rfind('?')]
     else:
         filename = address
     # download image
-    print(output_count, 'Downloading image', os.path.basename(filename))
-    image = requests.get(address, headers = {'User-agent': user_agent})
-    # Check if get was a success
-    if image.status_code != 200:
-        print(output_count, 'Coudn\'t load image')
-        print(output_count, 'Error: ' + str(image.status_code))
-        # error counter
+    #print(output_count, 'Downloading image', os.path.basename(filename))
+    try:
+        image = requests.get(address, headers = {'User-agent': user_agent}, timeout=0.5)
+    
+
+    
+        # Check if get was a success
+        if image.status_code != 200:
+            print(output_count, 'Coudn\'t load image')
+            print(output_count, 'Error: ' + str(image.status_code))
+            print(output_count, 'URL:', address)
+            # error counter
+            error_count += 1
+        else:
+            image_file = open(os.path.join(path, folder_name, os.path.basename(filename)), 'wb')
+            # save image
+            for chunk in image.iter_content(100000):
+                image_file.write(chunk)
+            image_file.close()
+            print(output_count, 'Saved!')
+            # image counter            
+            image_count += 1
+    except:
+        print(output_count, 'Timeout.')
         error_count += 1
-    else:
-        image_file = open(os.path.join(path, folder_name, os.path.basename(filename)), 'wb')
-        # save image
-        for chunk in image.iter_content(100000):
-            image_file.write(chunk)
-        image_file.close()
-        print(output_count, 'Saved!')
-        # image counter            
-        image_count += 1
 
     return None
 
@@ -155,8 +164,6 @@ else:
     folder_name = ''
 
 
-# request address
-
 
 # Amount of Images search per request,
 # looks like 100 is max
@@ -169,8 +176,9 @@ while amount > 0:
     if amount < 100:
         num = amount
 
+    #Replace blanks with + for Google search
     search.replace(' ', '+')
-
+    # request address
     address = 'https://www.google.com/search?q=' + search + '&source=lnms&tbm=isch&start=' + str(start) + '&num=' + str(num)
     # Calc amount for checking if we need another iteration
     amount  -= num
